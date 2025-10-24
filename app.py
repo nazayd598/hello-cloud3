@@ -19,7 +19,7 @@ HTML = """
       form { margin: 20px auto; }
       input { padding: 10px; front-size: 16px; }
       button { padding: 10px 15px; background: #4CAF50; color: white; border: none; border-radius: 6px; corsor: pointer; }
-      ul { list-style: none; padding: 0;}
+      ul { list-style: none; padding: 0; }
       li { background: white; margin: 5px auto; width: 200px; padding: 8px; border-radius: 5px; }
    </style>
 </head>
@@ -30,7 +30,7 @@ HTML = """
      <input type="text" name="isim" placeholder="Adını Yaz" required>
      <button type="submit">Gönder</button>
    </form>
-   <h3>Ziyaretçileer:</h3>
+   <h3>Ziyaretçiler:</h3>
    <ul>
       {% for ad in isimler %}
          <li>{{ ad }}</li>
@@ -64,4 +64,5 @@ conn.close()
 return render_template_string(HTML, isimler=isimler)
 
 if __name__ == "__main__":
-  app.run(host="0.0.0.0", port=5000)
+  port = int(os.environ.get("PORT", 5000))
+  app.run(host="0.0.0.0", port=port)
