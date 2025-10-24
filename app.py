@@ -28,7 +28,7 @@ HTML = """
    <p>Adını yaz, selamını bırak.</p>
    <form method="POST">
      <input type="text" name="isim" placeholder="Adını Yaz" required>
-     <button type="submit">Gönder</buutton>
+     <button type="submit">Gönder</button>
    </form>
    <h3>Ziyaretçileer:</h3>
    <ul>
