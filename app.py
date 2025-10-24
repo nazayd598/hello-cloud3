@@ -5,7 +5,7 @@ import psycopg2
 app = Flask(__name__)
 
 #Render'ın otomatik tanımlandığı veritabanı bağlantı bilgisi (DATABASE_URL ortam değişkeni)
-DATABASE_URL = os.getenv("DATABASE_URL")
+DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://hello_cloud3_db_y5um_user:DzGuilod1JIXMRllGiH0d0Xl1s4lhYf4@dpg-d3tjhdggjchc73fan24g-a.oregon-postgres.render.com/hello_cloud3_db_y5um")
 
 #HTML ŞABLONU (t3ek sayfada form + liste)
 HTML = """
