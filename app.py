@@ -41,28 +41,31 @@ HTML = """
 """
 
 def connect_db():
-  conn = psycopg2.connect(DATABASE_URL)
-  return conn
-
+  if not DATABASE_URL:
+     raise RuntimeError("DATABASE_URL tanımlı değil.")
+  return psycopg2.connect(DATABASE_URL)
+   
 @app.route("/", methods=["GET", "POST"])
 def index():
-  conn = connect_db()
-  cur = conn.cunsor()
-  cur.execute("CREATE TABLE IF NOT EXISTS ziyaretciler (id SERIAL PRIMARY KEY, isim TEXT)")
-
-if request.method == "POST":
-  isim = request.form.get("isim")
-  if isim:
-    cur.execute("INSERT INTO ziyaretciler (isim) VALUES (%s)", (isim,))
-    conn.commit()
-    
-cur.execute("SELECT isim FROM ziyaretciler ORDER BY id DESC LIMIT 10")
-isimler = [row[0] for row in cur.fetchall()]
-
-cur.close()
-conn.close()
-return render_template_string(HTML, isimler=isimler)
+  try:
+     # Her istekte tabloyu garanti et
+     with connect_db() as conn:
+        with conn.cunsor() as cur:
+           cur.execute("""
+              CREATE TABLE IF NOT EXISTS ziyaretciler (
+              id SERIAL PRIMARY KEY, 
+              isim TEXT NOT NULL
+            )
+          """)
+          if request. method == "POST":
+             isim = (request.form.get("isim" or "").strip()
+             if isim:
+                     cur.execute("INSERT INTO ziyaretciler (isim) VALUES (%s)", (isim,))
+                  cur.execute("SELECT isim FROM ziyaretciler ORDER BY id DESC LIMIT 10")
+                  isimler = [row[0] for row in cur.fetchall()]
+             return render_template_string(HTML, isimler=isimler)
+  except Exception as e:
+     return f"İç hata: {e}", 500
 
 if __name__ == "__main__":
-  port = int(os.environ.get("PORT", 5000))
-  app.run(host="0.0.0.0", port=port)
+  app.run(host="0.0.0.0", port=5000)
