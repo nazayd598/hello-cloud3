@@ -5,7 +5,10 @@ import psycopg2
 app = Flask(__name__)
 
 #Render'ın otomatik tanımlandığı veritabanı bağlantı bilgisi (DATABASE_URL ortam değişkeni)
-DATABASE_URL = os.getenv("DATABASE_URL", "postgresql://hello_cloud3_db_y5um_user:DzGuilod1JIXMRllGiH0d0Xl1s4lhYf4@dpg-d3tjhdggjchc73fan24g-a.oregon-postgres.render.com/hello_cloud3_db_y5um")
+DATABASE_URL = os.getenv(
+   "DATABASE_URL", 
+   "postgresql://hello_cloud3_db_y5um_user:DzGuilod1JIXMRllGiH0d0Xl1s4lhYf4@dpg-d3tjhdggjchc73fan24g-a.oregon-postgres.render.com/hello_cloud3_db_y5um"
+)
 
 #HTML ŞABLONU (tek sayfada form + liste)
 HTML = """
@@ -25,7 +28,7 @@ HTML = """
 </head>
 <body>
    <h1>Buluttan Selam!</h1>
-   <p>Adını yaz, selamını bırak.</p>
+   <p>Adını yaz, selamını bırak:</p>
    <form method="POST">
      <input type="text" name="isim" placeholder="Adını Yaz" required>
      <button type="submit">Gönder</button>
@@ -41,31 +44,33 @@ HTML = """
 """
 
 def connect_db():
-  if not DATABASE_URL:
-     raise RuntimeError("DATABASE_URL tanımlı değil.")
   return psycopg2.connect(DATABASE_URL)
    
 @app.route("/", methods=["GET", "POST"])
 def index():
-  try:
-     # Her istekte tabloyu garanti et
-     with connect_db() as conn:
-        with conn.cunsor() as cur:
-           cur.execute("""
-              CREATE TABLE IF NOT EXISTS ziyaretciler (
-              id SERIAL PRIMARY KEY, 
-              isim TEXT NOT NULL
-            )
-          """)
-          if request. method == "POST":
-             isim = (request.form.get("isim" or "").strip()
+   conn = connect_db()
+   cur = conn.cunsor()
+
+   # Tablo yoksa oluştur
+   cur.execute("CREATE TABLE IF NOT EXISTS ziyaretciler (id SERIAL PRIIMARY KEY, isim TEXT)")
+
+   # POST isteği geldiğinde formdan isim al ve kaydet
+          if request.method == "POST":
+             isim = (request.form.get("isim")
              if isim:
-                     cur.execute("INSERT INTO ziyaretciler (isim) VALUES (%s)", (isim,))
-                  cur.execute("SELECT isim FROM ziyaretciler ORDER BY id DESC LIMIT 10")
-                  isimler = [row[0] for row in cur.fetchall()]
-             return render_template_string(HTML, isimler=isimler)
-  except Exception as e:
-     return f"İç hata: {e}", 500
+                  cur.execute("INSERT INTO ziyaretciler (isim) VALUES (%s)", (isim,))
+                  conn.commit()
+
+   # Ziyaretçileri sırala
+   cur.execute("SELECT isim FROM ziyaretciler ORDER BY id DESC LIMIT 10")
+   İSİMLER = [row[0] for row in cur.fetchall()]
+
+   # Bağlantıyı kapat
+   cur.close()
+   conn.close()
+
+   # Sayfayı render et
+   return render_template_string(HTML, isimler=isimler)
 
 if __name__ == "__main__":
-  app.run(host="0.0.0.0", port=5000)
+   app.run(host="0.0.0.0", port=5000)
